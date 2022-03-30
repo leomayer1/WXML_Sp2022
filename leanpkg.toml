@@ -1,0 +1,8 @@
+[package]
+name = "WXML_Sp2020"
+version = "0.1"
+lean_version = "leanprover-community/lean:3.42.0"
+path = "src"
+
+[dependencies]
+mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "119eb05edfdce66f5ec32c8cd062d035f42330cb"}
