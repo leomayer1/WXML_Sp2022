@@ -30,7 +30,7 @@ instance : has_zero (ideal R) := ⟨{
 /- R itself is an ideal-/
 def univ : ideal R := {
   carrier := set.univ, --set.univ is the set of all elements of R
-  zero_mem' := by simp,
+  zero_mem' := by triv,
   add_mem' := by simp,
   smul_mem' := by simp
 }
@@ -42,7 +42,7 @@ def prin {R : Type*} [comm_ring R] (x : R) : ideal R := {
   add_mem' :=
     begin
       rintros _ _ ⟨a, rfl⟩ ⟨b, rfl⟩, --if a*x, b*x ∈ prin x...
-      exact ⟨a + b, (add_mul _ _ _).symm⟩ --then a*x + b*x = (a + b)*x ∈ prin x
+      exact ⟨a + b, by rw ← add_mul⟩, --then a*x + b*x = (a + b)*x ∈ prin x
     end,
   smul_mem' :=
     begin
@@ -50,6 +50,17 @@ def prin {R : Type*} [comm_ring R] (x : R) : ideal R := {
       exact ⟨r * a, (mul_assoc _ _ _).symm⟩ -- then r*(a*x) = (r*a)*x ∈ prin x
     end
 }
+
+lemma univ_eq_prin_one : univ R = prin (1 : R) :=
+begin
+  ext,
+  split,
+  { intro h,
+    simp [prin],}, --what is going on here??
+  { intro h,
+    triv,
+  },
+end
 
 end defs
 
@@ -106,15 +117,39 @@ lemma mem_prin {R : Type*} [comm_ring R] (x : R) : x ∈ prin x := ⟨1, by simp
 
 /- Definitions and facts about prime and maximal ideals -/
 variables {R : Type*} [comm_ring R]
-def prime (I : ideal R) := ∀ x y : R, x*y ∈ I → x ∈ I ∨ y ∈ I
-def maximal (I : ideal R) := ∀ J : ideal R, I ⊂ J → J = univ R
+def is_prin (I : ideal R) := ∃ (x : R), I = prin x
+def radical (I : ideal R) := ∀ (x : R) (n : ℕ), x^(n + 1) ∈ I → x ∈ I
+def prime (I : ideal R) := ((1 : R) ∉ I) ∧ (∀ x y : R, x*y ∈ I → x ∈ I ∨ y ∈ I)
+def maximal (I : ideal R) := (1 : R) ∉ I ∧ ∀ J : ideal R, I ⊂ J → J = univ R
+lemma is_unit_iff (x : R) : is_unit x ↔ ∃ y : R, x*y = 1 :=
+  begin
+    split,
+    { intro h,
+      rcases h with ⟨x,rfl⟩,
+      cases x with x y h1 h2,
+      use y,
+      exact h1,
+    },
+    { rintros ⟨y,hy⟩,
+      unfold is_unit,
+      use x,
+      exact y,
+      exact hy,
+      rw mul_comm,
+      exact hy,
+      refl,
+    }
+  end
+def irreducible (x : R) := ∀ y z : R, y*z = x → is_unit y ∨ is_unit z
 
 /- Pretty messy, definitely could use more outside lemmas
   This is what formalizing proofs "usually" looks like,
   with the entire thing written in tactic mode
 -/
-theorem maximal_implies_prime {I : ideal R} (hI : maximal I) : prime I :=
+theorem prime_of_maximal {I : ideal R} (hI : maximal I) : prime I :=
 begin
+  split,
+  exact hI.1,
   intros x y hxy,
   by_cases h : x ∈ I,
   { left,
@@ -131,7 +166,7 @@ begin
       exact ⟨(sub_add_right I (prin x)) (mem_prin x), h⟩,
       exact h2,
     },
-    have h4 := hI (I + prin x) h3,
+    have h4 := hI.2 (I + prin x) h3,
     have h5 : (1 : R) ∈ univ R := by simp [univ],
     rw ← h4 at h5,
     rcases h5 with ⟨i, _, hi, ⟨s, rfl⟩, hh⟩,
@@ -144,6 +179,31 @@ begin
     },
     { rw mul_assoc,
       exact I.smul_mem' s hxy,
+    }
+  }
+end
+
+theorem radical_of_prime {I : ideal R} (hI : prime I) : radical I :=
+begin
+  intros x n h,
+  induction n with m hm,
+  { simp at h,
+    exact h,
+  },
+  {
+    have h2 : x*x^(m+1) ∈ I,
+    {
+      convert h,
+      rw nat.succ_eq_add_one,
+      repeat {rw pow_add},
+      ring,
+    },
+    cases (hI.2 x (x^(m+1)) h2) with hx hbig,
+    {
+      exact hx,
+    },
+    {
+      exact hm hbig,
     }
   }
 end
