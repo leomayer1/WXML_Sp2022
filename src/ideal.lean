@@ -141,6 +141,14 @@ lemma is_unit_iff (x : R) : is_unit x ↔ ∃ y : R, x*y = 1 :=
     }
   end
 def irreducible (x : R) := ∀ y z : R, y*z = x → is_unit y ∨ is_unit z
+def preimage {S : Type*} [comm_ring S] (f: S →+* R) (I : ideal R) : ideal S :=
+  { carrier := f ⁻¹' (I.carrier),
+    zero_mem' := by simp[map_zero f, ideal.zero_mem'],
+    add_mem' := λ x y hx hy, by simp [ideal.add_mem' I hx hy],
+    smul_mem' := λ r x hx, by simp [ideal.smul_mem' I (f r) hx],
+  }
+@[simp] lemma mem_preimage_iff {S : Type*} [comm_ring S] (f: S →+* R) (I : ideal R) (x : S) :
+    x ∈ preimage f I ↔ f x ∈ I := iff.rfl
 
 /- Pretty messy, definitely could use more outside lemmas
   This is what formalizing proofs "usually" looks like,
@@ -181,6 +189,24 @@ begin
       exact I.smul_mem' s hxy,
     }
   }
+end
+
+theorem prime_of_preimage {S : Type*} [comm_ring S] (f : R →+* S) {I : ideal S}
+  (hI : prime I) : prime (preimage f I) :=
+begin
+  split,
+  { intros h1,
+    simp * at *,
+    exact hI.1 h1,
+  },
+  { intros x y hxy,
+    simp at hxy,
+    cases hI.2 (f x) (f y) hxy with hx hy,
+    { left,
+      exact hx,},
+    { right,
+      exact hy,},
+    },
 end
 
 theorem radical_of_prime {I : ideal R} (hI : prime I) : radical I :=
