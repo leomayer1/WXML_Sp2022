@@ -121,6 +121,17 @@ def is_prin (I : ideal R) := ∃ (x : R), I = prin x
 def radical (I : ideal R) := ∀ (x : R) (n : ℕ), x^(n + 1) ∈ I → x ∈ I
 def prime (I : ideal R) := ((1 : R) ∉ I) ∧ (∀ x y : R, x*y ∈ I → x ∈ I ∨ y ∈ I)
 def maximal (I : ideal R) := (1 : R) ∉ I ∧ ∀ J : ideal R, I ⊂ J → J = univ R
+
+/- TODO replace prime with ideal.prime, etc -/
+-- (preimage my_ideal_object).prime
+--example : ¬ (univ R).prime :=
+--begin
+--  intro h,
+--  unfold ideal.prime at h,
+--  apply h.1,
+--  triv,
+--end
+
 lemma is_unit_iff (x : R) : is_unit x ↔ ∃ y : R, x*y = 1 :=
   begin
     split,
@@ -191,22 +202,18 @@ begin
   }
 end
 
-theorem prime_of_preimage {S : Type*} [comm_ring S] (f : R →+* S) {I : ideal S}
+theorem prime_of_preimage {S : Type*} [comm_ring S]
+  (f : R →+* S) {I : ideal S}
   (hI : prime I) : prime (preimage f I) :=
 begin
+  unfold prime,
   split,
   { intros h1,
     simp * at *,
-    exact hI.1 h1,
-  },
-  { intros x y hxy,
-    simp at hxy,
-    cases hI.2 (f x) (f y) hxy with hx hy,
-    { left,
-      exact hx,},
-    { right,
-      exact hy,},
-    },
+    exact hI.1 h1,},
+  { intros x y g,
+    simp only [mem_preimage_iff, map_mul] at *,
+    exact hI.2 _ _ g,}
 end
 
 theorem radical_of_prime {I : ideal R} (hI : prime I) : radical I :=
