@@ -43,3 +43,4 @@ def ideal_gen_by  : ideal R := {
     end
 }
 
+def fingen (I : ideal R) : Prop := ∃ S : finset R, I = ideal_gen_by S
