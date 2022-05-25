@@ -105,6 +105,27 @@ instance : has_add (ideal R) := ⟨λ I J,
       end
   }⟩
 
+def union_of_directed_family {I} [inhabited I] (f : I → ideal R) (d : directed (⊆) f) : ideal R := {
+  carrier := ⋃ i, (f i).carrier,
+  zero_mem' := ⟨(f (arbitrary I)).carrier, ⟨arbitrary I, eq.refl _⟩, ideal.zero_mem' _⟩,
+  add_mem' := by {
+    intros x y hx hy,
+    cases hx with S hx, cases hx with w hx, cases w with i hi, subst hi,
+    cases hy with S' hy, cases hy with w hy, cases w with j hj, subst hj,
+    cases d i j with k hk, 
+    existsi (f k).carrier, existsi _,
+    { cases hk, apply ideal.add_mem', 
+      { apply hk_left, assumption },
+      { apply hk_right, assumption } },
+    { existsi k, refl } },
+  smul_mem' := by {
+    intros x r hx, cases hx with S hx, cases hx with w hx, cases w with i hi, subst hi,
+    existsi (f i).carrier, existsi _,
+    { apply ideal.smul_mem', assumption },
+    { existsi i, refl }
+  }
+}
+
 /- Easy lemmas -/
 @[simp] lemma zero_mem (I : ideal R) : (0 : R) ∈ I := I.zero_mem'
 @[simp] lemma sub_add_left (I J : ideal R) : I ⊆ I + J := λ i hi, ⟨i, 0, hi, by simp⟩
