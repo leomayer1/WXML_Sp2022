@@ -9,8 +9,6 @@ open_locale big_operators
 variables {R : Type} [comm_ring R]
 variable S : finset R
    
- 
-
 def ideal_gen_by  : ideal R := {
   carrier := {x : R | ∃ I : S → R, x = ∑ a : S, ((I a) * a : R)  }, 
 
@@ -73,13 +71,13 @@ begin
   cases g with coeffs g,
   subst g,
   apply linear_combinations_in_ideal,
-  assumption,
+  assumption
 end
 
 def indicator_of (P : set R) [decidable_pred P] : R → R :=
   λ x, if P x then 1 else 0
 
-theorem sum_over_subtype_is_sum_in {α G : Type} [decidable_eq α] [add_comm_monoid  G] (S : finset α) (f : α → G) (g : S → G) 
+theorem sum_over_subtype_is_sum_in {α G : Type} [decidable_eq α] [add_comm_monoid G] (S : finset α) (f : α → G) (g : S → G) 
   : (∀ x (h : x ∈ S), g ⟨x, h⟩ = f x) → ∑ x : S, g x = ∑ x : α in S, f x :=
 begin
   revert f g,
@@ -100,8 +98,7 @@ begin
       { intros, simp, apply_assumption } },
     { rw @finset.mem_image {x // x ∈ s} {x // x ∈ insert a s},
       intro h', cases h' with w h', cases h' with w' h', cases w,
-      simp at h', rw h' at w_property, contradiction }, 
-  }
+      simp at h', rw h' at w_property, contradiction } }
 end
 
 lemma finset_subset_of_ideal_gen_by [decidable_eq R] (S : finset R) : ∀ x : R, x ∈ S → x ∈ ideal_gen_by S :=
